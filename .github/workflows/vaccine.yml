@@ -1,0 +1,46 @@
+name: Vaccine
+
+on:
+  workflow_dispatch:
+    inputs:
+      commit_sha:
+        description: 'Commit SHA'
+        required: true
+
+jobs:
+  prepare_vaccine:
+    name: Prepare injection artifacts
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/datadog/dd-trace-rb/dd-lib-ruby-init:${{ inputs.commit_sha }}
+      options: --user root
+    steps:
+      - uses: actions/upload-artifact@v4
+        with:
+          name: vaccine
+          path: /datadog-init/package
+
+  inoculate:
+    name: Inject vaccine into app
+    needs: prepare_vaccine
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: vaccine
+          path: vaccine
+      - run: ls -Al vaccine
+      - run: docker build -t vaccine_app:${{ inputs.commit_sha }} --file src/Dockerfile src
+      - run: |
+          docker run -d \
+            --name inoculation \
+            -e RUBYOPT=-r/vaccine/host_inject \
+            -e DD_TRACE_DEBUG=true \
+            -v $(pwd)/vaccine:/vaccine \
+            -p 3000:3000 \
+            vaccine_app:${{ inputs.commit_sha }}
+      - run: sleep 10
+      - run: docker logs inoculation
+      - run: curl -v --retry 10 -f --retry-all-errors --retry-delay 5 -s -o /dev/null http://localhost:3000
+      - run: docker logs inoculation
