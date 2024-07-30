@@ -21,9 +21,31 @@ jobs:
           path: /datadog-init/package
 
   inoculate:
-    name: Inject vaccine into app
+    name: ${{ matrix.engine.name }} ${{ matrix.engine.version }} with ${{ matrix.command }}
     needs: prepare_vaccine
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        command:
+          - rails s
+          - bin/rails s
+          - bundle exec rails s
+        engine:
+          - name: ruby
+            version: '3.4'
+          - name: ruby
+            version: '3.3'
+          - name: ruby
+            version: '3.2'
+          - name: ruby
+            version: '3.1'
+          - name: ruby
+            version: '3.0'
+          - name: ruby
+            version: '2.7'
+          - name: ruby
+            version: '2.6'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
@@ -31,7 +53,12 @@ jobs:
           name: vaccine
           path: vaccine
       - run: ls -Al vaccine
-      - run: docker build -t vaccine_app:${{ inputs.commit_sha }} --file src/Dockerfile src
+      - run: |
+          docker build \
+            --build-arg RUBY_BASE_IMAGE=${{ matrix.engine.name }}:${{ matrix.engine.version }} \
+            -t patient:${{ matrix.engine.name }}-${{ matrix.engine.version }} \
+            --file src/Dockerfile \
+            src
       - run: |
           docker run -d \
             --name inoculation \
@@ -39,7 +66,8 @@ jobs:
             -e DD_TRACE_DEBUG=true \
             -v $(pwd)/vaccine:/vaccine \
             -p 3000:3000 \
-            vaccine_app:${{ inputs.commit_sha }}
+            patient:${{ matrix.engine.name }}-${{ matrix.engine.version }} \
+            "${{ matrix.command }} -b 0.0.0.0"
       - run: sleep 10
       - run: docker logs inoculation
       - run: curl -v --retry 10 -f --retry-all-errors --retry-delay 5 -s -o /dev/null http://localhost:3000

@@ -1,4 +1,6 @@
-FROM ghcr.io/datadog/images-rb/engines/ruby:3.0
+ARG RUBY_BASE_IMAGE
+
+FROM ghcr.io/datadog/images-rb/engines/${RUBY_BASE_IMAGE}
 
 RUN gem install rails
 RUN rails new weblog --minimal -GMOCAJT
