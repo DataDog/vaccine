@@ -48,6 +48,12 @@ jobs:
             version: '2.7'
           - name: ruby
             version: '2.6'
+          - name: ruby
+            version: '2.5'
+          - name: ruby
+            version: '2.4'
+          - name: ruby
+            version: '2.3'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
@@ -57,9 +63,8 @@ jobs:
       - run: ls -Al vaccine
       - run: |
           docker build \
-            --build-arg RUBY_BASE_IMAGE=${{ matrix.engine.name }}:${{ matrix.engine.version }} \
-            -t patient:${{ matrix.engine.name }}-${{ matrix.engine.version }} \
-            --file src/Dockerfile \
+            --tag patient:${{ matrix.engine.name }}-${{ matrix.engine.version }} \
+            --file src/${{ matrix.engine.name }}/${{ matrix.engine.version }}/Dockerfile \
             src
       - run: |
           docker run -d \
