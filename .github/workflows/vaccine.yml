@@ -105,3 +105,5 @@ jobs:
           channel-id: ${{ vars.SLACK_CHANNEL_ID }}
           slack-message: |-
             :github: ${{ github.repository }}: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+            :red-light: ${{ github.ref_type }}: ${{ github.ref_name }}
