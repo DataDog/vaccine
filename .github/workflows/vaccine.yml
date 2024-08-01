@@ -1,18 +1,20 @@
 name: Vaccine
 
 on:
+  push:
   workflow_dispatch:
     inputs:
       commit_sha:
         description: 'Commit SHA'
         required: true
+        default: 'latest_snapshot'
 
 jobs:
   prepare_vaccine:
     name: Prepare injection artifacts
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/datadog/dd-trace-rb/dd-lib-ruby-init:${{ inputs.commit_sha }}
+      image: ghcr.io/datadog/dd-trace-rb/dd-lib-ruby-init:${{ inputs.commit_sha || 'latest_snapshot' }}
       options: --user root
     steps:
       - uses: actions/upload-artifact@v4
@@ -72,3 +74,29 @@ jobs:
       - run: docker logs inoculation
       - run: curl -v --retry 10 -f --retry-all-errors --retry-delay 5 -s -o /dev/null http://localhost:3000
       - run: docker logs inoculation
+
+  notify:
+    runs-on: ubuntu-latest
+    needs: inoculate
+    if: always()
+    steps:
+      - if: ${{ needs.inoculate.result == 'success' }}
+        name: Notify on success
+        uses: slackapi/slack-github-action@v1.26.0
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+        with:
+          channel-id: ${{ vars.SLACK_CHANNEL_ID }}
+          slack-message: |-
+            :github: ${{ github.repository }}: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+            :github-check: ${{ github.ref_type }}: ${{ github.ref_name }}
+      - if: ${{ needs.inoculate.result == 'failure' }}
+        name: Notify on failure
+        uses: slackapi/slack-github-action@v1.26.0
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+        with:
+          channel-id: ${{ vars.SLACK_CHANNEL_ID }}
+          slack-message: |-
+            :github: ${{ github.repository }}: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
