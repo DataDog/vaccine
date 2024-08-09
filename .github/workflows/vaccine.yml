@@ -25,26 +25,51 @@ jobs:
         engine:
           - name: ruby
             version: '3.4'
+            validate: false
           - name: ruby
             version: '3.3'
+            validate: false
           - name: ruby
             version: '3.2'
+            validate: true
           - name: ruby
             version: '3.1'
+            validate: true
           - name: ruby
             version: '3.0'
+            validate: true
           - name: ruby
             version: '2.7'
+            validate: true
           - name: ruby
             version: '2.6'
+            validate: false
           - name: ruby
             version: '2.5'
+            validate: false
           - name: ruby
             version: '2.4'
+            validate: false
           - name: ruby
             version: '2.3'
+            validate: false
     steps:
       - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: .ruby-version
+      - run: bundle install
+      - run: mkdir $GITHUB_WORKSPACE/records
+      - uses: actions/checkout@v4
+        with:
+          repository: datadog/catadog
+          ref: tonycthsu/daemon
+          path: catadog
+      - run: cd catadog && bundle install && bundle exec catadog -h 0.0.0.0 --mock :Sink --no-forward --daemon --record $GITHUB_WORKSPACE/records
+      - run: curl -I http://localhost:8128/catadog
+      - run: cd ..
+      - run: pwd
+      - run: docker version
       - run: |
           docker create \
             --name init \
@@ -58,9 +83,13 @@ jobs:
       - run: |
           docker run -d \
             --name inoculation \
+            --network host \
             -v vaccine:/vaccine \
             -e RUBYOPT=-r/vaccine/host_inject \
             -e DD_TRACE_DEBUG=true \
+            -e DD_INSTRUMENTATION_TELEMETRY_ENABLED=false \
+            -e DD_AGENT_HOST=localhost \
+            -e DD_TRACE_AGENT_PORT=8128 \
             -p 3000:3000 \
             patient:${{ matrix.engine.name }}-${{ matrix.engine.version }} \
             "${{ matrix.command }} -b 0.0.0.0"
@@ -68,6 +97,15 @@ jobs:
       - run: docker logs inoculation
       - run: curl -v --retry 10 -f --retry-all-errors --retry-delay 5 -s -o /dev/null http://localhost:3000
       - run: docker logs inoculation
+      - name: crash puma
+        run: |
+          docker exec inoculation bash -c "pgrep -f puma | xargs kill -SEGV" || true
+          echo "Waiting for crash report..."
+          sleep 2
+      - run: ls -al $GITHUB_WORKSPACE/records
+      - run: docker logs inoculation
+      - if: ${{ matrix.engine.validate }}
+        run: CRASH_REPORTS_DIR=$GITHUB_WORKSPACE/records bundle exec rspec
 
   notify:
     runs-on: ubuntu-latest
