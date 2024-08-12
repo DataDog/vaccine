@@ -12,21 +12,8 @@ on:
         default: 'latest_snapshot'
 
 jobs:
-  prepare_vaccine:
-    name: Prepare injection artifacts
-    runs-on: ubuntu-latest
-    container:
-      image: ghcr.io/datadog/dd-trace-rb/dd-lib-ruby-init:${{ inputs.commit_sha || 'latest_snapshot' }}
-      options: --user root
-    steps:
-      - uses: actions/upload-artifact@v4
-        with:
-          name: vaccine
-          path: /datadog-init/package
-
   inoculate:
     name: ${{ matrix.engine.name }} ${{ matrix.engine.version }} with ${{ matrix.command }}
-    needs: prepare_vaccine
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -58,11 +45,11 @@ jobs:
             version: '2.3'
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
-        with:
-          name: vaccine
-          path: vaccine
-      - run: ls -Al vaccine
+      - run: |
+          docker create \
+            --name init \
+            -v vaccine:/datadog-init/package \
+            ghcr.io/datadog/dd-trace-rb/dd-lib-ruby-init:${{ inputs.commit_sha || 'latest_snapshot' }}
       - run: |
           docker build \
             --tag patient:${{ matrix.engine.name }}-${{ matrix.engine.version }} \
@@ -71,9 +58,9 @@ jobs:
       - run: |
           docker run -d \
             --name inoculation \
+            -v vaccine:/vaccine \
             -e RUBYOPT=-r/vaccine/host_inject \
             -e DD_TRACE_DEBUG=true \
-            -v $(pwd)/vaccine:/vaccine \
             -p 3000:3000 \
             patient:${{ matrix.engine.name }}-${{ matrix.engine.version }} \
             "${{ matrix.command }} -b 0.0.0.0"
