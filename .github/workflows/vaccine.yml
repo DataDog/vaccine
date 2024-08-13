@@ -59,18 +59,22 @@ jobs:
         with:
           ruby-version: .ruby-version
       - run: bundle install
-      - run: mkdir $GITHUB_WORKSPACE/records
+      # Prepare mock server 'catadog', https://github.com/DataDog/catadog
       - uses: actions/checkout@v4
         with:
           repository: datadog/catadog
           ref: tonycthsu/daemon
           path: catadog
-      - run: cd catadog && bundle install && bundle exec catadog -h 0.0.0.0 --mock :Sink --no-forward --daemon --record $GITHUB_WORKSPACE/records
-      - run: curl -I http://localhost:8128/catadog
-      - run: cd ..
-      - run: pwd
-      - run: docker version
+      - run: mkdir $GITHUB_WORKSPACE/records
       - run: |
+          cd catadog
+          bundle install
+          bundle exec catadog -h 0.0.0.0 --mock :Sink --no-forward --daemon --record $GITHUB_WORKSPACE/records
+      - run: curl -I http://localhost:8128/catadog
+
+      # Prepare vaccine
+      - name: Prepare vaccine volume
+        run: |
           docker create \
             --name init \
             -v vaccine:/datadog-init/package \
@@ -80,7 +84,8 @@ jobs:
             --tag patient:${{ matrix.engine.name }}-${{ matrix.engine.version }} \
             --file src/${{ matrix.engine.name }}/${{ matrix.engine.version }}/Dockerfile \
             src
-      - run: |
+      - name: Inject vaccine
+        run: |
           docker run -d \
             --name inoculation \
             --network host \
@@ -93,19 +98,17 @@ jobs:
             -p 3000:3000 \
             patient:${{ matrix.engine.name }}-${{ matrix.engine.version }} \
             "${{ matrix.command }} -b 0.0.0.0"
-      - run: sleep 10
-      - run: docker logs inoculation
-      - run: curl -v --retry 10 -f --retry-all-errors --retry-delay 5 -s -o /dev/null http://localhost:3000
-      - run: docker logs inoculation
-      - name: crash puma
-        run: |
-          docker exec inoculation bash -c "pgrep -f puma | xargs kill -SEGV" || true
-          echo "Waiting for crash report..."
-          sleep 2
-      - run: ls -al $GITHUB_WORKSPACE/records
+      - name: Generate traces
+        run: curl -v --retry 12 -f --retry-all-errors --retry-delay 5 -s -o /dev/null http://localhost:3000
+      - name: Inspect injection logs
+        run: docker logs inoculation
+      - name: Crash puma server
+        run: docker exec inoculation bash -c "pgrep -f puma | xargs kill -SEGV" || true
+      - run: sleep 2 && ls -al $GITHUB_WORKSPACE/records
       - run: docker logs inoculation
       - if: ${{ matrix.engine.validate }}
-        run: CRASH_REPORTS_DIR=$GITHUB_WORKSPACE/records bundle exec rspec
+        name: Validate crash report
+        run: RECORDS_DIR=$GITHUB_WORKSPACE/records bundle exec rspec
 
   notify:
     runs-on: ubuntu-latest
