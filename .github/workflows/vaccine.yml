@@ -1,7 +1,6 @@
 name: Vaccine
 
 on:
-  push:
   schedule:
     - cron: '0 7 * * *'
   workflow_dispatch:
