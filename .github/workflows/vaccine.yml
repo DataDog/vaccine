@@ -57,19 +57,17 @@ jobs:
       - uses: ruby/setup-ruby@v1
         with:
           ruby-version: .ruby-version
-      - run: bundle install
+      - run: bundle install 
       # Prepare mock server 'catadog', https://github.com/DataDog/catadog
-      - uses: actions/checkout@v4
-        with:
-          repository: datadog/catadog
-          ref: tonycthsu/daemon
-          path: catadog
       - run: mkdir $GITHUB_WORKSPACE/records
       - run: |
-          cd catadog
-          bundle install
-          bundle exec catadog -h 0.0.0.0 --mock :Sink --no-forward --daemon --record $GITHUB_WORKSPACE/records
-      - run: curl -I http://localhost:8128/catadog
+          docker run -d \
+            --name catadog \
+            -v $GITHUB_WORKSPACE/records:/records \
+            -p 8128:8128 \
+            ghcr.io/datadog/catadog:latest \
+            "-h 0.0.0.0 --mock :Sink --no-forward --record /records"
+      - run: curl -I --retry 12 -f --retry-all-errors --retry-delay 5 -s http://localhost:8128/catadog
 
       # Prepare vaccine
       - name: Prepare vaccine volume
