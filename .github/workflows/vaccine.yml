@@ -57,7 +57,7 @@ jobs:
       - uses: ruby/setup-ruby@v1
         with:
           ruby-version: .ruby-version
-      - run: bundle install 
+      - run: bundle install
       # Prepare mock server 'catadog', https://github.com/DataDog/catadog
       - run: mkdir $GITHUB_WORKSPACE/records
       - run: |
@@ -92,6 +92,7 @@ jobs:
             -e DD_INSTRUMENTATION_TELEMETRY_ENABLED=false \
             -e DD_AGENT_HOST=localhost \
             -e DD_TRACE_AGENT_PORT=8128 \
+            -e DD_CRASHTRACKING_ENABLED=true \
             -p 3000:3000 \
             patient:${{ matrix.engine.name }}-${{ matrix.engine.version }} \
             "${{ matrix.command }} -b 0.0.0.0"
