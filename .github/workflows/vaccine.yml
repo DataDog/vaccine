@@ -101,7 +101,7 @@ jobs:
       - name: Inspect injection logs
         run: docker logs inoculation
       - name: Crash puma server
-        run: docker exec inoculation bash -c "pgrep -f puma | xargs kill -SEGV" || true
+        run: sleep 2 && docker exec inoculation bash -c "pgrep -f puma | xargs kill -SEGV" || true
       - run: sleep 2 && ls -al $GITHUB_WORKSPACE/records
       - run: docker logs inoculation
       - if: ${{ matrix.engine.validate }}
