@@ -27,7 +27,7 @@ jobs:
             validate: false
           - name: ruby
             version: '3.3'
-            validate: false
+            validate: true
           - name: ruby
             version: '3.2'
             validate: true
