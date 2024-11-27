@@ -1,4 +1,4 @@
-FROM ghcr.io/datadog/images-rb/engines/ruby:3.4
+FROM ghcr.io/datadog/images-rb/engines/ruby:3.4-centos-gcc
 
 RUN gem install rails
 RUN rails new weblog --minimal -GMOCAJT && cd weblog
