@@ -53,6 +53,21 @@ jobs:
           - name: ruby
             version: '2.3'
             validate: false
+          - name: ruby
+            version: '2.2'
+            validate: false
+          - name: ruby
+            version: '2.1'
+            validate: false
+          - name: ruby
+            version: '2.0'
+            validate: false
+          - name: ruby
+            version: '1.9'
+            validate: false
+          - name: ruby
+            version: '1.8'
+            validate: false
     steps:
       - uses: actions/checkout@v4
       - uses: ruby/setup-ruby@v1
