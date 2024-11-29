@@ -1,9 +1,9 @@
 FROM ghcr.io/datadog/images-rb/engines/ruby:2.5-centos-gcc
 
 RUN gem install rails
-RUN rails new weblog --minimal -GMOCAJT
+RUN rails new app --minimal -GMOCAJT
 
-WORKDIR /weblog
+WORKDIR /app
 
 RUN bundle check || bundle install
 
