@@ -1,14 +1,26 @@
 FROM ghcr.io/datadog/images-rb/engines/ruby:1.8-centos-gcc
 
 RUN gem install rack -v 1.6.13
-RUN gem install rack-cache -v 1.2
-RUN gem install rails -v 3.2.0
-RUN rails new weblog --minimal -GMOCAJT
+RUN gem install tilt -v 2.0.11
+RUN gem install sinatra -v '~> 1.0'
 
-WORKDIR /weblog
+COPY <<RUBY /app/hello.rb
+require 'sinatra/base'
+require 'json'
 
-RUN bundle check || bundle install
+class App < Sinatra::Base
+  get '/' do
+    status 200
+    content_type :json
+    body JSON.dump({ hello: 'world' })
+  end
+end
+
+Rack::Server.new(app: App, Host: '0.0.0.0', Port: 3000).start
+RUBY
+
+WORKDIR /app
 
 ENTRYPOINT ["/bin/bash", "-c"]
 
-CMD ["bin/rails server -b 0.0.0.0" ]
+CMD ["ruby hello.rb" ]

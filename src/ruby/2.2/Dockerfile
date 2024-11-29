@@ -1,18 +1,25 @@
 FROM ghcr.io/datadog/images-rb/engines/ruby:2.2-centos-gcc
 
-RUN gem install io-console -v 0.5.4
-RUN gem install concurrent-ruby -v 1.1.10
-RUN gem install i18n -v 1.5.1
-RUN gem install racc -v 1.5.2
-RUN gem install nokogiri -v 1.9.1
-RUN gem install rails -v '~> 5.2.0'
-RUN rails new weblog --minimal -GMOCAJT
+RUN gem install rack -v 1.6.13
+RUN gem install sinatra -v '~> 1.0'
 
-WORKDIR /weblog
+COPY <<RUBY /app/hello.rb
+require 'sinatra/base'
+require 'json'
 
-RUN bundle add loofah --version 2.19.0
-RUN bundle check || bundle install
+class App < Sinatra::Base
+  get '/' do
+    status 200
+    content_type :json
+    body JSON.dump({ hello: 'world' })
+  end
+end
+
+Rack::Server.new(app: App, Host: '0.0.0.0', Port: 3000).start
+RUBY
+
+WORKDIR /app
 
 ENTRYPOINT ["/bin/bash", "-c"]
 
-CMD ["bin/rails server -b 0.0.0.0" ]
+CMD ["ruby hello.rb" ]
