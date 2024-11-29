@@ -12,11 +12,11 @@ class App < Sinatra::Base
   get '/' do
     status 200
     content_type :json
-    body JSON.dump({ hello: 'world' })
+    body JSON.dump({ :hello => 'world' })
   end
 end
 
-Rack::Server.new(app: App, Host: '0.0.0.0', Port: 3000).start
+Rack::Server.new(:app => App, :Host => '0.0.0.0', :Port => 3000).start
 RUBY
 
 WORKDIR /app
