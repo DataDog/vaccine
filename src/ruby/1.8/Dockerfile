@@ -3,8 +3,10 @@ FROM ghcr.io/datadog/images-rb/engines/ruby:1.8-centos-gcc
 RUN gem install rack -v 1.6.13
 RUN gem install tilt -v 2.0.11
 RUN gem install sinatra -v '~> 1.0'
+RUN gem install json -v 1.8.6
 
 COPY <<RUBY /app/hello.rb
+require 'rubygems'
 require 'sinatra/base'
 require 'json'
 
