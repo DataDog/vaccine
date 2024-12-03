@@ -1,6 +1,7 @@
 name: Vaccine
 
 on:
+  push:
   schedule:
     - cron: '0 7 * * *'
   workflow_dispatch:
@@ -52,6 +53,32 @@ jobs:
           - name: ruby
             version: '2.3'
             validate: false
+        include:
+          - engine:
+              name: ruby
+              version: '2.2'
+              validate: false
+            command: 'ruby hello.rb'
+          - engine:
+              name: ruby
+              version: '2.1'
+              validate: false
+            command: 'ruby hello.rb'
+          - engine:
+              name: ruby
+              version: '2.0'
+              validate: false
+            command: 'ruby hello.rb'
+          - engine:
+              name: ruby
+              version: '1.9'
+              validate: false
+            command: 'ruby hello.rb'
+          - engine:
+              name: ruby
+              version: '1.8'
+              validate: false
+            command: 'ruby hello.rb'
     steps:
       - uses: actions/checkout@v4
       - uses: ruby/setup-ruby@v1
@@ -99,6 +126,7 @@ jobs:
       - name: Generate traces
         run: curl -v --retry 12 -f --retry-all-errors --retry-delay 5 -s -o /dev/null http://localhost:3000
       - name: Inspect injection logs
+        if: always()
         run: docker logs inoculation
       - name: Crash puma server
         run: sleep 2 && docker exec inoculation bash -c "pgrep -f puma | xargs kill -SEGV" || true
