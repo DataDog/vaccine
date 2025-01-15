@@ -14,7 +14,7 @@ on:
 jobs:
   inoculate:
     name: ${{ matrix.engine.name }} ${{ matrix.engine.version }} with ${{ matrix.command }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
