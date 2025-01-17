@@ -1,8 +1,8 @@
 FROM ghcr.io/datadog/images-rb/engines/ruby:2.6-centos-gcc
 
-RUN gem install rails -v 6.1.7.0 --no-document
+RUN gem install rails -v 6.1.7.0
 # see: https://github.com/rails/rails/issues/54263
-RUN gem uninstall concurrent-ruby --ignore-dependencies && gem install concurrent-ruby -v 1.3.4 --no-document
+RUN gem uninstall concurrent-ruby --ignore-dependencies && gem install concurrent-ruby -v 1.3.4
 RUN rails new app --minimal -GMOCAJT --skip-bundle
 
 WORKDIR /app
