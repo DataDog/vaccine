@@ -1,6 +1,6 @@
 FROM ghcr.io/datadog/images-rb/engines/ruby:3.4-centos-gcc
 
-RUN gem install rails --no-document
+RUN gem install rails -v 8.0.1 --no-document
 RUN rails new app --minimal -GMOCAJT --skip-bundle
 
 WORKDIR /app

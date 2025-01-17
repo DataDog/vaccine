@@ -1,6 +1,6 @@
 FROM ghcr.io/datadog/images-rb/engines/ruby:2.3-centos-gcc
 
-RUN gem install rails
+RUN gem install rails -v 5.2.8.1 --no-document
 RUN rails new app --minimal -GMOCAJT
 
 WORKDIR /app

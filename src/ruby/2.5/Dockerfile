@@ -1,6 +1,6 @@
 FROM ghcr.io/datadog/images-rb/engines/ruby:2.5-centos-gcc
 
-RUN gem install rails --no-document
+RUN gem install rails -v 6.1.7.0 --no-document
 # see: https://github.com/rails/rails/issues/54263
 RUN gem uninstall concurrent-ruby --ignore-dependencies && gem install concurrent-ruby -v 1.3.4 --no-document
 RUN rails new app --minimal -GMOCAJT --skip-bundle
