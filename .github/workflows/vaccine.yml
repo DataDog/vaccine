@@ -136,6 +136,17 @@ jobs:
         name: Validate crash report
         run: RECORDS_DIR=$GITHUB_WORKSPACE/records bundle exec rspec
 
+  status-check:
+    runs-on: ubuntu-24.04
+    needs: inoculate
+    steps:
+      - if: ${{ needs.inoculate.result == 'success' }}
+        name: Signal success
+        run: exit 0
+      - if: ${{ needs.inoculate.result != 'success' }}
+        name: Signal failure
+        run: exit 1
+
   notify:
     runs-on: ubuntu-24.04
     needs: inoculate
