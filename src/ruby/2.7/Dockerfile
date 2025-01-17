@@ -1,6 +1,6 @@
 FROM ghcr.io/datadog/images-rb/engines/ruby:2.7-centos-gcc
 
-RUN gem install rails --no-document
+RUN gem install rails -v 7.1.5.1
 RUN rails new app --minimal -GMOCAJT --skip-bundle
 
 WORKDIR /app
