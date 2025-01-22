@@ -21,6 +21,10 @@ The workflow runs on:
 - Daily schedule (7:00 UTC)
 - Manual dispatch with optional commit SHA specification
 
+<div align="center">
+  <img src="illustration.png" alt="workflow integrated"/>
+</div>
+
 ## Test Matrix
 
 The workflow tests the following combinations:
