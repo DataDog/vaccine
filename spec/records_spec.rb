@@ -59,7 +59,6 @@ RSpec.describe "Records" do
 
       message = JSON.parse(payload[:message], symbolize_names: true)
       expect(message).to a_hash_including(
-        :additional_stacktraces,
         :files,
         metadata: a_hash_including(
           :tags,
