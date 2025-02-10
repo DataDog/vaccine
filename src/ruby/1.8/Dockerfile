@@ -1,11 +1,19 @@
 FROM ghcr.io/datadog/images-rb/engines/ruby:1.8-centos-gcc
 
-RUN gem install rack -v 1.6.13
-RUN gem install tilt -v 2.0.11
-RUN gem install sinatra -v '~> 1.0'
-RUN gem install json -v 1.8.6
+WORKDIR /app
 
-COPY <<RUBY /app/hello.rb
+COPY <<RUBY Gemfile
+source 'https://rubygems.org'
+
+gem 'rack', '1.6.13'
+gem 'tilt', '2.0.11'
+gem 'sinatra', '~> 1.0'
+gem 'json', '1.8.6'
+RUBY
+
+RUN bundle install
+
+COPY <<RUBY hello.rb
 require 'rubygems'
 require 'sinatra/base'
 require 'json'
@@ -21,8 +29,6 @@ end
 Rack::Server.new(:app => App, :Host => '0.0.0.0', :Port => 3000).start
 RUBY
 
-WORKDIR /app
-
 ENTRYPOINT ["/bin/bash", "-c"]
 
-CMD ["ruby hello.rb" ]
+CMD ["bundle exec ruby hello.rb" ]
