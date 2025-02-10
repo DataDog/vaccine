@@ -6,12 +6,12 @@ RSpec.describe "Records" do
   end
 
   describe "trace records" do
+    let(:trace_data) do
+      records.map{ |r| JSON.parse(File.read(r), symbolize_names: true) }.find{|r|r[:request][:path].include?("/traces")}
+    end
+
     it do
-      trace_report = records.first
-
-      data = JSON.parse(File.read(trace_report), symbolize_names: true)
-
-      expect(data).to a_hash_including(
+      expect(trace_data).to a_hash_including(
         request: hash_including(
           method: "POST",
           path: "/v0.4/traces",
@@ -20,7 +20,7 @@ RSpec.describe "Records" do
         )
       )
 
-      render_span, controller_span, rack_span = trace = data[:request][:body].first
+      render_span, controller_span, rack_span = trace = trace_data[:request][:body].first
 
       expect(trace.map { |s| s[:trace_id] }.uniq.length).to eq(1)
 
