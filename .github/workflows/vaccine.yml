@@ -33,7 +33,7 @@ jobs:
         engine:
           - name: ruby
             version: '3.4'
-            validate: false
+            validate: true
           - name: ruby
             version: '3.3'
             validate: true
