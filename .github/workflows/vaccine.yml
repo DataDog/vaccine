@@ -10,8 +10,12 @@ on:
         description: 'dd-lib-ruby-init image tag'
         required: true
         default: 'latest_snapshot'
+      glci-pipeline-id:
+        description: 'GitLab CI pipeline ID'
+        required: false
+        default: ''
 
-run-name: "dd-lib-ruby-init:${{ inputs.dd-lib-ruby-init-tag || 'latest_snapshot' }}"
+run-name: "dd-lib-ruby-init:${{ inputs.dd-lib-ruby-init-tag || 'latest_snapshot' }} ${{ inputs.glci-pipeline-id == '' && 'manual' || format('glci:{0}', inputs.glci-pipeline-id) }}"
 
 jobs:
   inoculate:
