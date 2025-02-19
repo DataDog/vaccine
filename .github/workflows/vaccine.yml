@@ -31,7 +31,7 @@ jobs:
         engine:
           - name: ruby
             version: '3.4'
-            validate: false
+            validate: true
           - name: ruby
             version: '3.3'
             validate: true
@@ -49,7 +49,7 @@ jobs:
             validate: true
           - name: ruby
             version: '2.6'
-            validate: false
+            validate: true
           - name: ruby
             version: '2.5'
             validate: false
