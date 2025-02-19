@@ -6,10 +6,16 @@ on:
     - cron: '0 7 * * *'
   workflow_dispatch:
     inputs:
-      commit_sha:
-        description: 'Commit SHA'
+      dd-lib-ruby-init-tag:
+        description: 'dd-lib-ruby-init image tag'
         required: true
         default: 'latest_snapshot'
+      trigger-id:
+        description: 'Trigger ID'
+        required: false
+        default: ''
+
+run-name: "dd-lib-ruby-init:${{ inputs.dd-lib-ruby-init-tag || 'latest_snapshot' }}${{ inputs.trigger-id && format(' {0}', inputs.trigger-id) }}"
 
 jobs:
   inoculate:
@@ -102,7 +108,7 @@ jobs:
           docker create \
             --name init \
             -v vaccine:/datadog-init/package \
-            ghcr.io/datadog/dd-trace-rb/dd-lib-ruby-init:${{ inputs.commit_sha || 'latest_snapshot' }}
+            ghcr.io/datadog/dd-trace-rb/dd-lib-ruby-init:${{ inputs.dd-lib-ruby-init-tag || 'latest_snapshot' }}
       - run: |
           docker build \
             --tag patient:${{ matrix.engine.name }}-${{ matrix.engine.version }} \
