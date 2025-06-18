@@ -1,9 +1,6 @@
 issuer: https://gitlab.ddbuild.io
 
-subject: repo:DataDog/dd-trace-rb:ref:refs/heads/*
-
-claim_pattern:
-  project_path: "DataDog/dd-trace-rb"
+subject_pattern: "project_path:DataDog/*"
 
 permissions:
   contents: read
