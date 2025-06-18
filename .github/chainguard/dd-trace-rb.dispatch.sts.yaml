@@ -4,3 +4,4 @@ subject_pattern: ^project_path:DataDog/apm-reliability/dd-trace-rb:ref_type:(bra
 
 permissions:
   contents: read
+  actions: write
