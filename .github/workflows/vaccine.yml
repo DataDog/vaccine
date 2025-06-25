@@ -19,6 +19,8 @@ run-name: "dd-lib-ruby-init:${{ inputs.dd-lib-ruby-init-tag || 'latest_snapshot'
 
 jobs:
   inoculate:
+    permissions:
+      id-token: write # This is required for ecr-login to work - it allows generating short lived oidc tokens used in cross-auth
     name: ${{ matrix.engine.name }} ${{ matrix.engine.version }} with ${{ matrix.command }}
     runs-on: ubuntu-24.04
     strategy:
@@ -101,14 +103,21 @@ jobs:
             ghcr.io/datadog/catadog:latest \
             "-h 0.0.0.0 --mock :Sink --no-forward --record /records"
       - run: curl -I --retry 12 -f --retry-all-errors --retry-delay 5 -s http://localhost:8128/catadog
-
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # v4
+        with:
+          role-to-assume: arn:aws:iam::235494822917:role/github-actions-oidc
+          aws-region: us-east-1
+      - name: Login to Amazon ECR
+        id: ecr-login
+        uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076 # v2
       # Prepare vaccine
       - name: Prepare vaccine volume
         run: |
           docker create \
             --name init \
             -v vaccine:/datadog-init/package \
-            ghcr.io/datadog/dd-trace-rb/dd-lib-ruby-init:${{ inputs.dd-lib-ruby-init-tag || 'latest_snapshot' }}
+            235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/dd-lib-ruby-init:${{ inputs.dd-lib-ruby-init-tag || 'latest_snapshot' }}
       - run: |
           docker build \
             --tag patient:${{ matrix.engine.name }}-${{ matrix.engine.version }} \
