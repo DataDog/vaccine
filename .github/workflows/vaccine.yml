@@ -113,12 +113,14 @@ jobs:
               shift 2
             fi
 
-            for try in $(seq 1 ${times}); do
+            for try in $(seq 1 $(( ${times} + 1 )) ); do
               if "$@"; then return; else rc=$?; fi;
 
               delay=$(( ${backoff} * ${try} ))
-              echo "attempt ${try} failed; retrying in ${delay}s"
-              sleep ${delay}
+              if [[ $try -le $times ]]; then
+                echo "attempt ${try} failed; retrying in ${delay}s"
+                sleep ${delay}
+              fi
             done
 
             return $rc
