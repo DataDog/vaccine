@@ -101,9 +101,9 @@ jobs:
           function attempt () {
             docker pull ghcr.io/datadog/catadog:latest
           }
-          delay=3
+          delay=5
 
-          for try in $(seq 1 3); do if attempt; then break; fi; echo "attempt $try failed; retrying in ${delay}s"; sleep ${delay}; done
+          for try in $(seq 1 5); do if attempt; then break; fi; backoff=$(( ${delay} * ${try} )); echo "attempt ${try} failed; retrying in ${backoff}s"; sleep ${backoff}; done
       - name: Spawn catadog
         run: |
           docker run -d \
