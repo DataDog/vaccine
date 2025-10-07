@@ -98,12 +98,34 @@ jobs:
         run: mkdir $GITHUB_WORKSPACE/records
       - name: Install catadog
         run: |
-          function attempt () {
-            docker pull ghcr.io/datadog/catadog:latest
-          }
-          delay=5
+          function retry () {
+            local times=999
+            local backoff=1
+            local rc=0
 
-          for try in $(seq 1 5); do if attempt; then break; fi; backoff=$(( ${delay} * ${try} )); echo "attempt ${try} failed; retrying in ${backoff}s"; sleep ${backoff}; done
+            if [[ $2 == 'times' ]]; then
+              times="$1"
+              shift 2
+            fi
+
+            if [[ $2 == 'backoff' ]]; then
+              backoff="${1//s}"
+              shift 2
+            fi
+
+            for try in $(seq 1 ${times}); do
+              if "$@"; then return; else rc=$?; fi;
+
+              delay=$(( ${backoff} * ${try} ))
+              echo "attempt ${try} failed; retrying in ${delay}s"
+              sleep ${delay}
+            done
+
+            return $rc
+          }
+
+          retry 5 times 5s backoff docker pull ghcr.io/datadog/catadog:latest
+
       - name: Spawn catadog
         run: |
           docker run -d \
