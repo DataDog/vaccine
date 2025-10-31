@@ -166,7 +166,9 @@ jobs:
       - name: Login to Amazon ECR
         id: ecr-login
         run: |
-          aws ecr get-login-password | docker login -u AWS --password-stdin 'https://${{ steps.ecr.outputs.identity }}.dkr.ecr.${{ steps.ecr.outputs.region }}.amazonaws.com'
+          source retry.sh
+
+          retry 5 times 5s backoff bash -c 'aws ecr get-login-password | docker login -u AWS --password-stdin "https://${{ steps.ecr.outputs.identity }}.dkr.ecr.${{ steps.ecr.outputs.region }}.amazonaws.com"'
       # Prepare vaccine
       - name: Prepare vaccine volume
         run: |
