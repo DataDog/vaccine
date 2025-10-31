@@ -96,8 +96,9 @@ jobs:
       # Prepare mock server 'catadog', https://github.com/DataDog/catadog
       - name: Create catadog records directory
         run: mkdir $GITHUB_WORKSPACE/records
-      - name: Install catadog
+      - name: Setup helpers
         run: |
+          cat > retry.sh <<'BASH'
           function retry () {
             local times=999
             local backoff=1
@@ -125,6 +126,10 @@ jobs:
 
             return $rc
           }
+          BASH
+      - name: Install catadog
+        run: |
+          source retry.sh
 
           retry 5 times 5s backoff docker pull ghcr.io/datadog/catadog:latest
 
