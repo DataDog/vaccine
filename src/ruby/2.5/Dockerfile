@@ -13,6 +13,7 @@ RUN echo 'gem "nokogiri", force_ruby_platform: true' >> Gemfile
 RUN echo 'gem "ffi", force_ruby_platform: true' >> Gemfile
 
 RUN echo 'gem "concurrent-ruby", "= 1.3.4"' >> Gemfile
+RUN echo 'gem "strscan", "= 3.1.5"' >> Gemfile
 
 RUN bundle check || bundle install
 
